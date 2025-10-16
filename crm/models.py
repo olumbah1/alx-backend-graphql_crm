@@ -4,7 +4,7 @@ from decimal import Decimal
 
 
 class Customer(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
     phone_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$|^\d{3}-\d{3}-\d{4}$',
@@ -26,7 +26,7 @@ class Customer(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,

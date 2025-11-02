@@ -8,7 +8,6 @@ from datetime import datetime
 from .models import Customer, Product, Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
-
 # Object Types
 class CustomerType(DjangoObjectType):
     class Meta:
@@ -51,6 +50,13 @@ class OrderInput(graphene.InputObjectType):
     customer_id = graphene.ID(required=True)
     product_ids = graphene.List(graphene.ID, required=True)
     order_date = graphene.DateTime()
+
+
+# Output Types
+class UpdatedProductType(graphene.ObjectType):
+    id = graphene.ID()
+    name = graphene.String()
+    stock = graphene.Int()
 
 
 # Mutations
@@ -270,6 +276,52 @@ class CreateOrder(graphene.Mutation):
             )
 
 
+class UpdateLowStockProducts(graphene.Mutation):
+    """Mutation to update low-stock products (stock < 10)"""
+    success = graphene.Boolean()
+    message = graphene.String()
+    updated_products = graphene.List(UpdatedProductType)
+    
+    class Arguments:
+        pass
+    
+    def mutate(self, info):
+        """
+        Updates products with stock < 10 by incrementing stock by 10.
+        Returns list of updated products with new stock levels.
+        """
+        try:
+            # Find all products with stock < 10
+            low_stock_products = Product.objects.filter(stock__lt=10)
+            updated_products = []
+            
+            for product in low_stock_products:
+                # Increment stock by 10 (simulate restocking)
+                product.stock += 10
+                product.save()
+                
+                updated_products.append(
+                    UpdatedProductType(
+                        id=product.id,
+                        name=product.name,
+                        stock=product.stock
+                    )
+                )
+            
+            return UpdateLowStockProducts(
+                success=True,
+                message=f"Successfully updated {len(updated_products)} products",
+                updated_products=updated_products
+            )
+        
+        except Exception as e:
+            return UpdateLowStockProducts(
+                success=False,
+                message=f"Error updating low stock products: {str(e)}",
+                updated_products=[]
+            )
+
+
 # Query with Filters
 class Query(graphene.ObjectType):
     # Filtered queries using DjangoFilterConnectionField
@@ -313,6 +365,12 @@ class Query(graphene.ObjectType):
     customer = graphene.Field(CustomerType, id=graphene.ID(required=True))
     product = graphene.Field(ProductType, id=graphene.ID(required=True))
     order = graphene.Field(OrderType, id=graphene.ID(required=True))
+    
+    # Hello field for heartbeat verification
+    hello = graphene.String()
+
+    def resolve_hello(self, info):
+        return "Hello from GraphQL CRM!"
 
     def resolve_customers_list(self, info, **kwargs):
         """Resolve customers with filters"""
@@ -394,9 +452,14 @@ class Query(graphene.ObjectType):
         except Order.DoesNotExist:
             return None
 
+
 # Mutation
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

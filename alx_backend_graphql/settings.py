@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'crm',
     'django_filters',
     'graphene_django',
-    'django_crontab',
+    'djangocrontab',
 ]
 
 MIDDLEWARE = [
@@ -138,3 +138,6 @@ CRONJOBS = [
     # Update low stock products - runs every 12 hours (at 00:00 and 12:00)
     ('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]
+
+CRONTAB_COMMAND_PREFIX = 'DJANGO_SETTINGS_MODULE=crm.settings'
+CRONTAB_PYTHON_EXECUTABLE = '/usr/bin/python3'

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'crm',
     'django_filters',
     'graphene_django',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GRAPHENE = {
     'SCHEMA': 'alx_backend_graphql_crm.schema.schema'
 }
+
+
+# Cron job configurations
+CRONJOBS = [
+    # Heartbeat logger - runs every 5 minutes
+    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
+    
+    # Update low stock products - runs every 12 hours (at 00:00 and 12:00)
+    ('0 */12 * * *', 'crm.cron.update_low_stock'),
+]

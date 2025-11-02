@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'crm',
     'django_filters',
     'graphene_django',
-    'djangocrontab',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
